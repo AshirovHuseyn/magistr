@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Magistr Qəbul Ehtimalı — Bal Müqayisəsi</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+  :root{
+    --ink:#16213a;
+    --ink-soft:#4b5670;
+    --paper:#f7f5ef;
+    --card:#ffffff;
+    --line:#e2ddd0;
+    --navy:#1d2f5c;
+    --navy-deep:#11203f;
+    --gold:#b8893a;
+    --gold-soft:#ead9b8;
+    --good:#2f6b4f;
+    --good-bg:#e3f0e7;
+    --warn:#8a5a14;
+    --warn-bg:#f6ead2;
+    --bad:#9c3b3b;
+    --bad-bg:#f6e2e0;
+    --radius:14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Georgia', 'Times New Roman', serif;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  .sans{font-family:'Helvetica Neue', Arial, sans-serif;}
+
+  /* ---------- Header ---------- */
+  header{
+    background:linear-gradient(160deg, var(--navy-deep), var(--navy) 70%);
+    color:#fff;
+    padding:56px 24px 64px;
+    position:relative;
+    overflow:hidden;
+  }
+  @media (max-width:620px){
+    header{ padding:40px 18px 52px; }
+  }
+  header::after{
+    content:"";
+    position:absolute;
+    right:-60px; top:-60px;
+    width:280px; height:280px;
+    border:1px solid rgba(255,255,255,.12);
+    border-radius:50%;
+  }
+  header::before{
+    content:"";
+    position:absolute;
+    right:20px; bottom:-100px;
+    width:220px; height:220px;
+    border:1px solid rgba(255,255,255,.08);
+    border-radius:50%;
+  }
+  .eyebrow{
+    font-family:'Helvetica Neue', Arial, sans-serif;
+    text-transform:uppercase;
+    letter-spacing:.16em;
+    font-size:11.5px;
+    color:var(--gold-soft);
+    margin:0 0 14px;
+  }
+  h1{
+    font-size:clamp(28px,5vw,42px);
+    margin:0 0 14px;
+    max-width:680px;
+    font-weight:400;
+    letter-spacing:.2px;
+  }
+  h1 em{font-style:italic;color:var(--gold-soft);}
+  header p.lede{
+    font-family:'Helvetica Neue', Arial, sans-serif;
+    max-width:560px;
+    color:#cbd2e6;
+    font-size:15px;
+    margin:0;
+  }
+
+  /* ---------- Layout ---------- */
+  main{
+    max-width:880px;
+    margin:0 auto;
+    padding:0 24px 80px;
+  }
+  @media (max-width:620px){
+    main{ padding:0 14px 56px; }
+  }
+  .panel{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    margin-top:-34px;
+    box-shadow:0 18px 40px -24px rgba(17,32,63,.35);
+    position:relative;
+    z-index:2;
+  }
+  @media (max-width:620px){
+    .panel{ margin-top:-26px; border-radius:11px; }
+  }
+
+  /* ---------- Form ---------- */
+  .form-grid{
+    padding:32px;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:20px;
+  }
+  @media (max-width:620px){ .form-grid{grid-template-columns:1fr; padding:20px 18px; gap:16px;} }
+  .field{display:flex; flex-direction:column; gap:8px;}
+  .field.full{grid-column:1/-1;}
+  label{
+    font-family:'Helvetica Neue', Arial, sans-serif;
+    font-size:12px;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    color:var(--ink-soft);
+  }
+  input[type=number], select{
+    font-family:'Helvetica Neue', Arial, sans-serif;
+    font-size:16px;
+    padding:13px 14px;
+    border-radius:9px;
+    border:1.5px solid var(--line);
+    background:#fdfcf9;
+    color:var(--ink);
+    outline:none;
+    transition:border-color .15s;
+    width:100%;
+    -webkit-appearance:none;
+    appearance:none;
+  }
+  input[type=number]:focus, select:focus{border-color:var(--navy);}
+  .basis-toggle{
+    display:flex;
+    gap:8px;
+  }
+  .basis-toggle button{
+    flex:1;
+    font-family:'Helvetica Neue', Arial, sans-serif;
+    font-size:13.5px;
+    padding:11px 10px;
+    border-radius:9px;
+    border:1.5px solid var(--line);
+    background:#fdfcf9;
+    color:var(--ink-soft);
+    cursor:pointer;
+    transition:all .15s;
+  }
+  .basis-toggle button.active{
+    background:var(--navy);
+    border-color:var(--navy);
+    color:#fff;
+  }
+  .submit-row{
+    grid-column:1/-1;
+    margin-top:6px;
+  }
+  button.cta{
+    width:100%;
+    font-family:'Helvetica Neue', Arial, sans-serif;
+    font-weight:600;
+    letter-spacing:.02em;
+    font-size:15px;
+    padding:16px;
+    background:var(--gold);
+    color:#241804;
+    border:none;
+    border-radius:9px;
+    cursor:pointer;
+    transition:transform .12s, background .15s;
+  }
+  button.cta:hover{background:#c89a4d;}
+  button.cta:active{transform:scale(.99);}
+  button.cta:disabled{background:#d8cdab; cursor:not-allowed;}
+
+  /* ---------- Result ---------- */
+  #result{display:none;}
+  .result-head{
+    padding:30px 32px 0;
+    border-top:1px solid var(--line);
+  }
+  @media (max-width:620px){ .result-head{ padding:22px 18px 0; } }
+  .verdict{
+    border-radius:11px;
+    padding:22px 24px;
+    margin:24px 0 6px;
+  }
+  .verdict.good{background:var(--good-bg); color:var(--good);}
+  .verdict.warn{background:var(--warn-bg); color:var(--warn);}
+  .verdict.bad{background:var(--bad-bg); color:var(--bad);}
+  .verdict h2{
+    font-family:'Helvetica Neue', Arial, sans-serif;
+    font-size:19px;
+    margin:0 0 6px;
+  }
+  .verdict p{
+    font-family:'Helvetica Neue', Arial, sans-serif;
+    font-size:14px;
+    margin:0;
+    opacity:.92;
+  }
+  .stat-row{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:14px;
+    padding:24px 32px;
+  }
+  @media (max-width:620px){ .stat-row{grid-template-columns:1fr; padding:18px;} }
+  .stat{
+    background:#fbfaf6;
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:16px 18px;
+    text-align:center;
+  }
+  .stat .label{
+    font-family:'Helvetica Neue', Arial, sans-serif;
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:.06em;
+    color:var(--ink-soft);
+    margin:0 0 6px;
+  }
+  .stat .value{
+    font-size:26px;
+    margin:0;
+  }
+  .stat .value.accent{color:var(--navy);}
+
+  .chart-wrap{
+    padding:8px 32px 32px;
+  }
+  @media (max-width:620px){ .chart-wrap{ padding:6px 18px 26px; } }
+  .chart-wrap h3{
+    font-family:'Helvetica Neue', Arial, sans-serif;
+    font-size:13px;
+    text-transform:uppercase;
+    letter-spacing:.06em;
+    color:var(--ink-soft);
+    margin:0 0 16px;
+  }
+  .chart-box{position:relative; height:240px;}
+  @media (max-width:620px){ .chart-box{ height:220px; } }
+
+  .other-options{
+    padding:0 32px 36px;
+  }
+  @media (max-width:620px){ .other-options{ padding:0 18px 28px; } }
+  .other-options h3{
+    font-family:'Helvetica Neue', Arial, sans-serif;
+    font-size:13px;
+    text-transform:uppercase;
+    letter-spacing:.06em;
+    color:var(--ink-soft);
+    margin:0 0 14px;
+  }
+  .table-scroll{
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+  }
+  table{
+    width:100%;
+    border-collapse:collapse;
+    font-family:'Helvetica Neue', Arial, sans-serif;
+    font-size:13.5px;
+    min-width:420px;
+  }
+  th,td{
+    text-align:left;
+    padding:10px 8px;
+    border-bottom:1px solid var(--line);
+  }
+  th{
+    color:var(--ink-soft);
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:.05em;
+    font-weight:600;
+  }
+  td.num{text-align:right; font-variant-numeric:tabular-nums;}
+  tr.ok td.num.bal{color:var(--good);}
+  tr.no td.num.bal{color:var(--bad);}
+
+  .empty-state{
+    padding:60px 32px;
+    text-align:center;
+    font-family:'Helvetica Neue', Arial, sans-serif;
+    color:var(--ink-soft);
+    font-size:14px;
+  }
+
+  footer{
+    max-width:880px;
+    margin:0 auto;
+    padding:0 24px 60px;
+    font-family:'Helvetica Neue', Arial, sans-serif;
+    font-size:12.5px;
+    color:var(--ink-soft);
+  }
+  @media (max-width:620px){ footer{ padding:0 18px 44px; } }
+  footer .src{
+    border-top:1px solid var(--line);
+    padding-top:18px;
+    margin-top:10px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <p class="eyebrow sans">Magistratura · 2026</p>
+  <h1>Balın səni <em>haraya</em> apara bilər?</h1>
+  <p class="lede">Topladığın balı keçmiş illərin keçid balları ilə müqayisə et — ixtisas üzrə real mənzərəni gör.</p>
+</header>
+
+<main>
+  <div class="panel">
+    <div class="form-grid">
+      <div class="field">
+        <label class="sans" for="balInput">Topladığın bal</label>
+        <input type="number" id="balInput" step="0.5" min="0" max="700" placeholder="məs. 65.5">
+      </div>
+
+      <div class="field">
+        <label class="sans">Əsas</label>
+        <div class="basis-toggle sans">
+          <button type="button" id="basisOdenisli" class="active">Ödənişli</button>
+          <button type="button" id="basisDs">Dövlət sifarişi (DS)</button>
+        </div>
+      </div>
+
+      <div class="field full">
+        <label class="sans" for="groupSelect">İxtisas qrupu</label>
+        <select id="groupSelect">
+          <option value="">— seç —</option>
+        </select>
+      </div>
+
+      <div class="field full">
+        <label class="sans" for="specSelect">İxtisas</label>
+        <select id="specSelect" disabled>
+          <option value="">əvvəlcə qrup seç</option>
+        </select>
+      </div>
+
+      <div class="submit-row">
+        <button class="cta sans" id="checkBtn" disabled>Ehtimalımı göstər</button>
+      </div>
+    </div>
+
+    <div id="result">
+      <div class="result-head">
+        <div class="verdict" id="verdictBox">
+          <h2 id="verdictTitle"></h2>
+          <p id="verdictText"></p>
+        </div>
+      </div>
+
+      <div class="stat-row">
+        <div class="stat">
+          <p class="label sans">Sənin balın</p>
+          <p class="value accent" id="statYour"></p>
+        </div>
+        <div class="stat">
+          <p class="label sans">2026 keçid balı</p>
+          <p class="value" id="statLatest"></p>
+        </div>
+        <div class="stat">
+          <p class="label sans">Fərq</p>
+          <p class="value" id="statDiff"></p>
+        </div>
+      </div>
+
+      <div class="chart-wrap">
+        <h3 class="sans">İllər üzrə keçid balının dəyişməsi</h3>
+        <div class="chart-box"><canvas id="trendChart"></canvas></div>
+      </div>
+
+      <div class="other-options">
+        <h3 class="sans">Eyni qrupda digər seçimlər (2026)</h3>
+        <div class="table-scroll">
+        <table>
+          <thead>
+            <tr><th class="sans">İxtisas</th><th class="sans">Universitet</th><th class="sans num">Bal</th></tr>
+          </thead>
+          <tbody id="otherRows"></tbody>
+        </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="empty-state sans" id="emptyState">
+      Balını yaz, ixtisas qrupunu və konkret ixtisası seç — nəticə burada görünəcək.
+    </div>
+  </div>
+
+  <footer>
+    <div class="src">
+      Mənbə: DİM məlumatları əsasında <strong>qebulol.az</strong> (2025–2026-cı il magistratura keçid balları). Hazırda yalnız bu iki ilin datası mövcuddur; nəticə tövsiyə xarakterlidir, rəsmi qəbul qərarı deyil.
+    </div>
+  </footer>
+</main>
+
+<script>
+const RAW_DATA = [{"qrup": "7006022 Kompüter mühəndisliyi", "universitet": "ATU", "ixtisas": "Kompüter sistemləri və şəbəkələri", "il": 2026, "odenisli": 70, "ds": 70}, {"qrup": "7006022 Kompüter mühəndisliyi", "universitet": "ATU", "ixtisas": "Kompüter sistemləri və şəbəkələri (tədris ingilis dilində)", "il": 2026, "odenisli": 64.5, "ds": 64.5}, {"qrup": "7006022 Kompüter mühəndisliyi", "universitet": "ATU", "ixtisas": "Kompüter sistemləri və şəbəkələri (tədris türk dilində)", "il": 2026, "odenisli": 69, "ds": 69}, {"qrup": "7006022 Kompüter mühəndisliyi", "universitet": "ADNSU", "ixtisas": "Kompüter sistemləri və şəbəkələri", "il": 2026, "odenisli": 64.5, "ds": 64.5}, {"qrup": "7006022 Kompüter mühəndisliyi", "universitet": "ATU", "ixtisas": "Kompüter sistemləri və şəbəkələri", "il": 2025, "odenisli": 65, "ds": 65}, {"qrup": "7006022 Kompüter mühəndisliyi", "universitet": "ATU", "ixtisas": "Kompüter sistemləri və şəbəkələri (tədris ingilis dilində)", "il": 2025, "odenisli": 63, "ds": 63}, {"qrup": "7006022 Kompüter mühəndisliyi", "universitet": "ADNSU", "ixtisas": "Kompüter sistemləri və şəbəkələri (tədris ingilis dilində)", "il": 2025, "odenisli": 49, "ds": 55}, {"qrup": "7006022 Kompüter mühəndisliyi", "universitet": "ATU", "ixtisas": "Bulud və şəbəkə infrastrukturları", "il": 2026, "odenisli": 69, "ds": 69}, {"qrup": "7006022 Kompüter mühəndisliyi", "universitet": "ATU", "ixtisas": "Bulud və şəbəkə infrastrukturları (tədris türk dilində)", "il": 2026, "odenisli": 65.5, "ds": 65.5}, {"qrup": "7006022 Kompüter mühəndisliyi", "universitet": "ATU", "ixtisas": "Biliklərin əldə edilməsi sistemləri", "il": 2026, "odenisli": 67, "ds": 67}, {"qrup": "7006022 Kompüter mühəndisliyi", "universitet": "ATU", "ixtisas": "Biliklərin əldə edilməsi sistemləri", "il": 2025, "odenisli": 64.5, "ds": 64.5}, {"qrup": "7006022 Kompüter mühəndisliyi", "universitet": "ATU", "ixtisas": "Kompüter texnikasının layihələndirilməsi texnologiyası", "il": 2026, "odenisli": 66.5, "ds": 66.5}, {"qrup": "7006022 Kompüter mühəndisliyi", "universitet": "ATU", "ixtisas": "Kompüter texnikasının layihələndirilməsi texnologiyası", "il": 2026, "odenisli": 65, "ds": 65}, {"qrup": "7006022 Kompüter mühəndisliyi", "universitet": "ATU", "ixtisas": "Kompüter texnikasının layihələndirilməsi texnologiyası (tədris türk dilində)", "il": 2026, "odenisli": 64, "ds": 64}, {"qrup": "7006022 Kompüter mühəndisliyi", "universitet": "ATU", "ixtisas": "Kompüter texnikasının layihələndirilməsi və konstruksiya edilməsi", "il": 2025, "odenisli": 63, "ds": 63}, {"qrup": "7006022 Kompüter mühəndisliyi", "universitet": "ATU", "ixtisas": "Dinamiki arxitekturalı multiprosessor sistem və şəbəkələri", "il": 2025, "odenisli": 63.5, "ds": 63.5}, {"qrup": "7006016 İnformasiya texnologiyaları", "universitet": "ATU", "ixtisas": "İdarəetmədə informasiya sistemləri", "il": 2026, "odenisli": 72, "ds": 72}, {"qrup": "7006016 İnformasiya texnologiyaları", "universitet": "ADNSU", "ixtisas": "İdarəetmədə informasiya sistemləri", "il": 2026, "odenisli": 70, "ds": 70}, {"qrup": "7006016 İnformasiya texnologiyaları", "universitet": "ADNSU", "ixtisas": "İdarəetmədə informasiya sistemləri", "il": 2026, "odenisli": 68.5, "ds": 68.5}, {"qrup": "7006016 İnformasiya texnologiyaları", "universitet": "AMİU", "ixtisas": "İdarəetmədə informasiya sistemləri", "il": 2026, "odenisli": 71, "ds": 71}, {"qrup": "7006016 İnformasiya texnologiyaları", "universitet": "BDU", "ixtisas": "İdarəetmədə informasiya sistemləri", "il": 2026, "odenisli": 71.5, "ds": 71.5}, {"qrup": "7006016 İnformasiya texnologiyaları", "universitet": "ADİU", "ixtisas": "İdarəetmədə informasiya sistemləri", "il": 2026, "odenisli": 78, "ds": 78}, {"qrup": "7006016 İnformasiya texnologiyaları", "universitet": "ADPU", "ixtisas": "İdarəetmədə informasiya sistemləri", "il": 2026, "odenisli": 71.5, "ds": 71.5}, {"qrup": "7006016 İnformasiya texnologiyaları", "universitet": "ATU", "ixtisas": "İdarəetmədə informasiya sistemləri", "il": 2025, "odenisli": 70, "ds": 70}, {"qrup": "7006016 İnformasiya texnologiyaları", "universitet": "ADNSU", "ixtisas": "İdarəetmədə informasiya sistemləri", "il": 2025, "odenisli": 66.5, "ds": 66.5}, {"qrup": "7006016 İnformasiya texnologiyaları", "universitet": "AMİU", "ixtisas": "İdarəetmədə informasiya sistemləri", "il": 2025, "odenisli": 62.5, "ds": 62.5}, {"qrup": "7006016 İnformasiya texnologiyaları", "universitet": "BDU", "ixtisas": "İnformasiya sistemləri", "il": 2025, "odenisli": 59.5, "ds": 59.5}, {"qrup": "7006016 İnformasiya texnologiyaları", "universitet": "ATU", "ixtisas": "Telekommunikasiya sistemlərində informasiya texnologiyaları", "il": 2026, "odenisli": 71, "ds": 71}, {"qrup": "7006016 İnformasiya texnologiyaları", "universitet": "ATU", "ixtisas": "Telekommunikasiya sistemlərində informasiya texnologiyaları", "il": 2025, "odenisli": null, "ds": null}, {"qrup": "7006016 İnformasiya texnologiyaları", "universitet": "BDU", "ixtisas": "İqtisadiyyatda intellektual texnologiyalar", "il": 2026, "odenisli": 69, "ds": 69}, {"qrup": "7006016 İnformasiya texnologiyaları", "universitet": "BDU", "ixtisas": "İqtisadiyyatda intellektual texnologiyalar", "il": 2026, "odenisli": 75, "ds": 75}, {"qrup": "7006016 İnformasiya texnologiyaları", "universitet": "ADİU", "ixtisas": "İqtisadiyyatda intellektual texnologiyalar", "il": 2026, "odenisli": 75, "ds": 75}, {"qrup": "7006016 İnformasiya texnologiyaları", "universitet": "ADİU", "ixtisas": "İqtisadiyyatda intellektual texnologiyalar", "il": 2026, "odenisli": 70, "ds": 70}, {"qrup": "7006016 İnformasiya texnologiyaları", "universitet": "ATU", "ixtisas": "Rəqəmsal transformasiya", "il": 2026, "odenisli": 68, "ds": 68}, {"qrup": "7006016 İnformasiya texnologiyaları", "universitet": "ATU", "ixtisas": "Rəqəmsal transformasiya (tədris ingilis dilində)", "il": 2026, "odenisli": 68, "ds": 68}, {"qrup": "7006016 İnformasiya texnologiyaları", "universitet": "ATU", "ixtisas": "Rəqəmsal hökumət", "il": 2025, "odenisli": 71.5, "ds": 71.5}, {"qrup": "7006016 İnformasiya texnologiyaları", "universitet": "ATU", "ixtisas": "Logistikada informasiya texnologiyaları", "il": 2026, "odenisli": 64.5, "ds": 64.5}, {"qrup": "7006016 İnformasiya texnologiyaları", "universitet": "ATU", "ixtisas": "Logistikada informasiya texnologiyaları (tədris ingilis dilində)", "il": 2026, "odenisli": 65, "ds": 65}, {"qrup": "7006017 İnformasiya təhlükəsizliyi", "universitet": "ATU", "ixtisas": "İnformasiya mühafizəsi və təhlükəsizliyi", "il": 2026, "odenisli": 70.5, "ds": 70.5}, {"qrup": "7006017 İnformasiya təhlükəsizliyi", "universitet": "ATU", "ixtisas": "İnformasiya mühafizəsi və təhlükəsizliyi (tədris ingilis dilində)", "il": 2026, "odenisli": 75.5, "ds": 75.5}, {"qrup": "7006017 İnformasiya təhlükəsizliyi", "universitet": "ADNSU", "ixtisas": "İnformasiya mühafizəsi və təhlükəsizliyi", "il": 2025, "odenisli": 71, "ds": 71}, {"qrup": "7006017 İnformasiya təhlükəsizliyi", "universitet": "ADNSU", "ixtisas": "İnformasiya mühafizəsi və təhlükəsizliyi (tədris ingilis dilində)", "il": 2025, "odenisli": 72.5, "ds": 72.5}, {"qrup": "7006017 İnformasiya təhlükəsizliyi", "universitet": "ATU", "ixtisas": "İnformasiya mühafizəsi və təhlükəsizliyi", "il": 2025, "odenisli": 70.5, "ds": 70.5}, {"qrup": "7006017 İnformasiya təhlükəsizliyi", "universitet": "ATU", "ixtisas": "İnformasiya mühafizəsi və təhlükəsizliyi (tədris ingilis dilində)", "il": 2025, "odenisli": 75.5, "ds": 75.5}, {"qrup": "7006017 İnformasiya təhlükəsizliyi", "universitet": "ATU", "ixtisas": "Kibertəhlükəsizlik", "il": 2026, "odenisli": 43.5, "ds": 75}, {"qrup": "7006017 İnformasiya təhlükəsizliyi", "universitet": "ATU", "ixtisas": "Kibertəhlükəsizlik (tədris ingilis dilində)", "il": 2026, "odenisli": 48.5, "ds": 75}, {"qrup": "7006017 İnformasiya təhlükəsizliyi", "universitet": "ADİU", "ixtisas": "Kibertəhlükəsizlik", "il": 2026, "odenisli": 77.5, "ds": 77.5}, {"qrup": "7006017 İnformasiya təhlükəsizliyi", "universitet": "ADİU", "ixtisas": "Kibertəhlükəsizlik", "il": 2026, "odenisli": 76, "ds": 76}, {"qrup": "7006017 İnformasiya təhlükəsizliyi", "universitet": "ADİU", "ixtisas": "Kibertəhlükəsizlik (tədris ingilis dilində)", "il": 2026, "odenisli": 81, "ds": 81}, {"qrup": "7006017 İnformasiya təhlükəsizliyi", "universitet": "AMİU", "ixtisas": "Kibertəhlükəsizlik", "il": 2026, "odenisli": 64, "ds": 64}, {"qrup": "7006017 İnformasiya təhlükəsizliyi", "universitet": "ATU", "ixtisas": "Kibertəhlükəsizlik (SABAH, tədris Azərbaycan dilində)", "il": 2025, "odenisli": 64, "ds": 64}, {"qrup": "7006017 İnformasiya təhlükəsizliyi", "universitet": "ATU", "ixtisas": "Kompüter və şəbəkə təhlükəsizliyi", "il": 2026, "odenisli": 40, "ds": null}, {"qrup": "7006017 İnformasiya təhlükəsizliyi", "universitet": "ATU", "ixtisas": "Kompüter və şəbəkə təhlükəsizliyi (tədris ingilis dilində)", "il": 2026, "odenisli": 40, "ds": null}, {"qrup": "7006017 İnformasiya təhlükəsizliyi", "universitet": "ATU", "ixtisas": "Kompüter təhlükəsizliyi", "il": 2025, "odenisli": 66, "ds": 66}, {"qrup": "7006017 İnformasiya təhlükəsizliyi", "universitet": "ATU", "ixtisas": "Kompüter təhlükəsizliyi (tədris ingilis dilində)", "il": 2025, "odenisli": 67, "ds": 67}, {"qrup": "7006017 İnformasiya təhlükəsizliyi", "universitet": "ATU", "ixtisas": "İnformasiya sistemlərinin təhlükəsizliyi (sahələr üzrə)", "il": 2026, "odenisli": 40, "ds": null}, {"qrup": "7006017 İnformasiya təhlükəsizliyi", "universitet": "ATU", "ixtisas": "İnformasiya sistemlərinin təhlükəsizliyi (sahələr üzrə, tədris ingilis dilində)", "il": 2026, "odenisli": 51.5, "ds": 75}, {"qrup": "7006017 İnformasiya təhlükəsizliyi", "universitet": "ATU", "ixtisas": "İdarəetmə sistemlərinin proqram təminatının təhlükəsizliyi", "il": 2026, "odenisli": 47, "ds": 75.5}, {"qrup": "7006017 İnformasiya təhlükəsizliyi", "universitet": "ADİU", "ixtisas": "İdarəetmə sistemlərinin proqram təminatının təhlükəsizliyi", "il": 2026, "odenisli": 47, "ds": 75.5}, {"qrup": "7006017 İnformasiya təhlükəsizliyi", "universitet": "ATU", "ixtisas": "Tətbiqi kriptoqrafiya", "il": 2026, "odenisli": 40, "ds": null}, {"qrup": "7006017 İnformasiya təhlükəsizliyi", "universitet": "ADİU", "ixtisas": "Tətbiqi kriptoqrafiya", "il": 2026, "odenisli": 41, "ds": null}, {"qrup": "7006017 İnformasiya təhlükəsizliyi", "universitet": "ATU", "ixtisas": "Telekommunikasiya sistemlərinin informasiya təhlükəsizliyi", "il": 2026, "odenisli": 40, "ds": null}, {"qrup": "7006017 İnformasiya təhlükəsizliyi", "universitet": "ATU", "ixtisas": "Telekommunikasiya sistemlərinin informasiya təhlükəsizliyi", "il": 2026, "odenisli": 56.5, "ds": 77.5}, {"qrup": "7006017 İnformasiya təhlükəsizliyi", "universitet": "ATU", "ixtisas": "Telekommunikasiya sistemlərinin informasiya təhlükəsizliyi (tədris ingilis dilində)", "il": 2026, "odenisli": 40, "ds": null}, {"qrup": "7006017 İnformasiya təhlükəsizliyi", "universitet": "ATU", "ixtisas": "Telekommunikasiya sistemlərinin informasiya təhlükəsizliyi", "il": 2025, "odenisli": 64, "ds": 64}, {"qrup": "7006017 İnformasiya təhlükəsizliyi", "universitet": "ATU", "ixtisas": "Telekommunikasiya sistemlərinin informasiya təhlükəsizliyi (tədris ingilis dilində)", "il": 2025, "odenisli": 66.5, "ds": 66.5}, {"qrup": "7006017 İnformasiya təhlükəsizliyi", "universitet": "ATU", "ixtisas": "Sənaye idarəetmə sistemlərinin təhlükəsizliyi", "il": 2026, "odenisli": 50.5, "ds": null}, {"qrup": "7006005 Data elmləri", "universitet": "ATU", "ixtisas": "Verilənlərin təhlili", "il": 2026, "odenisli": 56, "ds": null}, {"qrup": "7006005 Data elmləri", "universitet": "ATU", "ixtisas": "Verilənlərin təhlili (tədris ingilis dilində)", "il": 2026, "odenisli": 40, "ds": null}, {"qrup": "7006005 Data elmləri", "universitet": "ADNSU", "ixtisas": "Verilənlərin təhlili (tədris ingilis dilində)", "il": 2026, "odenisli": 40, "ds": null}, {"qrup": "7006005 Data elmləri", "universitet": "ADİU", "ixtisas": "Verilənlərin təhlili", "il": 2026, "odenisli": 54.5, "ds": null}, {"qrup": "7006005 Data elmləri", "universitet": "ADİU", "ixtisas": "Verilənlərin təhlili (tədris ingilis dilində)", "il": 2026, "odenisli": 65.5, "ds": null}, {"qrup": "7006005 Data elmləri", "universitet": "ATU", "ixtisas": "Verilənlərin təhlili (Data analitikası)", "il": 2025, "odenisli": 73, "ds": 73}, {"qrup": "7006005 Data elmləri", "universitet": "ATU", "ixtisas": "Verilənlərin təhlili (Data analitikası, tədris ingilis dilində)", "il": 2025, "odenisli": 75.5, "ds": 75.5}, {"qrup": "7006005 Data elmləri", "universitet": "ADNSU", "ixtisas": "Verilənlərin təhlili (Data analitikası, tədris ingilis dilində)", "il": 2025, "odenisli": 59, "ds": 59}, {"qrup": "7005009 Kompüter elmləri", "universitet": "ATU", "ixtisas": "İntellektual sistemlər", "il": 2026, "odenisli": 70.5, "ds": 70.5}, {"qrup": "7005009 Kompüter elmləri", "universitet": "ATU", "ixtisas": "İntellektual sistemlər (tədris ingilis dilində)", "il": 2026, "odenisli": 68.5, "ds": 68.5}, {"qrup": "7005009 Kompüter elmləri", "universitet": "BDU", "ixtisas": "İntellektual sistemlər", "il": 2026, "odenisli": 76.5, "ds": 76.5}, {"qrup": "7005009 Kompüter elmləri", "universitet": "BDU", "ixtisas": "İntellektual sistemlər", "il": 2026, "odenisli": 73.5, "ds": 73.5}, {"qrup": "7005009 Kompüter elmləri", "universitet": "ATU", "ixtisas": "İntellektual sistemlər", "il": 2025, "odenisli": 67.5, "ds": 67.5}, {"qrup": "7005009 Kompüter elmləri", "universitet": "ATU", "ixtisas": "İntellektual sistemlər (tədris ingilis dilində)", "il": 2025, "odenisli": 65, "ds": 65}, {"qrup": "7005009 Kompüter elmləri", "universitet": "ATU", "ixtisas": "Kompüter modelləşdirməsi", "il": 2026, "odenisli": 65.5, "ds": 65.5}, {"qrup": "7005009 Kompüter elmləri", "universitet": "ATU", "ixtisas": "Kompüter modelləşdirməsi (tədris ingilis dilində)", "il": 2026, "odenisli": 65.5, "ds": 65.5}, {"qrup": "7005009 Kompüter elmləri", "universitet": "ATU", "ixtisas": "Kompüter modelləşdirməsi (tədris türk dilində)", "il": 2026, "odenisli": 63.5, "ds": 63.5}, {"qrup": "7005009 Kompüter elmləri", "universitet": "ATU", "ixtisas": "Kompüterli modelləşdirmə", "il": 2025, "odenisli": 63, "ds": 63}, {"qrup": "7005009 Kompüter elmləri", "universitet": "ATU", "ixtisas": "Kompüterli modelləşdirmə (tədris ingilis dilində)", "il": 2025, "odenisli": 52.5, "ds": 60}, {"qrup": "7005009 Kompüter elmləri", "universitet": "BDU", "ixtisas": "Riyazi modelləşdirmə", "il": 2026, "odenisli": 64, "ds": 64}, {"qrup": "7005009 Kompüter elmləri", "universitet": "ATU", "ixtisas": "Riyazi modelləşdirmə", "il": 2026, "odenisli": 62.5, "ds": 62.5}, {"qrup": "7005009 Kompüter elmləri", "universitet": "BDU", "ixtisas": "Riyazi modelləşdirmə", "il": 2025, "odenisli": 58.5, "ds": 58.5}, {"qrup": "7005009 Kompüter elmləri", "universitet": "ATU", "ixtisas": "Riyazi modelləşdirmə", "il": 2025, "odenisli": 61.5, "ds": 61.5}, {"qrup": "7005009 Kompüter elmləri", "universitet": "BDU", "ixtisas": "Tətbiqi riyaziyyat", "il": 2026, "odenisli": 66, "ds": 66}, {"qrup": "7005009 Kompüter elmləri", "universitet": "ADNSU", "ixtisas": "Tətbiqi riyaziyyat", "il": 2026, "odenisli": 63.5, "ds": 63.5}, {"qrup": "7005009 Kompüter elmləri", "universitet": "BDU", "ixtisas": "Tətbiqi riyaziyyat", "il": 2025, "odenisli": 61, "ds": 61}, {"qrup": "7005009 Kompüter elmləri", "universitet": "ADNSU", "ixtisas": "Tətbiqi riyaziyyat", "il": 2025, "odenisli": 61.5, "ds": 61.5}, {"qrup": "7005009 Kompüter elmləri", "universitet": "ADNSU", "ixtisas": "Tətbiqi riyaziyyat", "il": 2025, "odenisli": 63, "ds": 63}, {"qrup": "7005009 Kompüter elmləri", "universitet": "BDU", "ixtisas": "İqtisadiyyatda optimal idarəetmənin riyazi üsulları", "il": 2026, "odenisli": 67, "ds": 67}, {"qrup": "7005009 Kompüter elmləri", "universitet": "ATU", "ixtisas": "İqtisadiyyatda optimal idarəetmənin riyazi üsulları", "il": 2026, "odenisli": 64, "ds": 64}, {"qrup": "7005009 Kompüter elmləri", "universitet": "ATU", "ixtisas": "Optimal idarəetmənin riyazi-iqtisadi üsulları", "il": 2025, "odenisli": 62.5, "ds": 62.5}, {"qrup": "7005009 Kompüter elmləri", "universitet": "ATU", "ixtisas": "Kompüter riyaziyyatı", "il": 2026, "odenisli": 65, "ds": 65}, {"qrup": "7005009 Kompüter elmləri", "universitet": "ATU", "ixtisas": "Rəqəmsal dövlət", "il": 2026, "odenisli": 71, "ds": 71}, {"qrup": "7005009 Kompüter elmləri", "universitet": "ATU", "ixtisas": "Rəqəmsal dövlət (tədris ingilis dilində)", "il": 2026, "odenisli": 69, "ds": 69}, {"qrup": "7005009 Kompüter elmləri", "universitet": "ATU", "ixtisas": "Süni intellekt", "il": 2026, "odenisli": 73.5, "ds": 73.5}, {"qrup": "7005009 Kompüter elmləri", "universitet": "ATU", "ixtisas": "Süni intellekt (tədris ingilis dilində)", "il": 2026, "odenisli": 76.5, "ds": 76.5}, {"qrup": "7005009 Kompüter elmləri", "universitet": "ATU", "ixtisas": "Süni intellekt (tədris türk dilində)", "il": 2026, "odenisli": 71.5, "ds": 71.5}, {"qrup": "7005009 Kompüter elmləri", "universitet": "ADNSU", "ixtisas": "Süni intellekt (tədris ingilis dilində)", "il": 2026, "odenisli": 67, "ds": 67}, {"qrup": "7005009 Kompüter elmləri", "universitet": "ATU", "ixtisas": "Süni intellekt", "il": 2025, "odenisli": 71.5, "ds": 71.5}, {"qrup": "7005009 Kompüter elmləri", "universitet": "ATU", "ixtisas": "Süni intellekt (tədris ingilis dilində)", "il": 2025, "odenisli": 76.5, "ds": 76.5}, {"qrup": "7005009 Kompüter elmləri", "universitet": "ADNSU", "ixtisas": "Süni intellekt (SABAH, tədris ingilis dilində)", "il": 2025, "odenisli": 40, "ds": 58}, {"qrup": "7005009 Kompüter elmləri", "universitet": "ATU", "ixtisas": "Əşyaların interneti və kiberfiziki sistemlər", "il": 2026, "odenisli": 66, "ds": 66}, {"qrup": "7005009 Kompüter elmləri", "universitet": "ATU", "ixtisas": "Əşyaların interneti və kiberfiziki sistemlər (tədris ingilis dilində)", "il": 2026, "odenisli": 65.5, "ds": 65.5}, {"qrup": "7006028 Mexatronika və robototexnika mühəndisliyi", "universitet": "ATU", "ixtisas": "Mexatronika", "il": 2026, "odenisli": 53, "ds": 53}, {"qrup": "7006028 Mexatronika və robototexnika mühəndisliyi", "universitet": "BDU", "ixtisas": "Mexatronika", "il": 2026, "odenisli": 63, "ds": 63}, {"qrup": "7006028 Mexatronika və robototexnika mühəndisliyi", "universitet": "ATU", "ixtisas": "Mexatronika", "il": 2025, "odenisli": 53, "ds": 53}, {"qrup": "7006028 Mexatronika və robototexnika mühəndisliyi", "universitet": "ATU", "ixtisas": "Robotlar və robototexniki sistemlər", "il": 2026, "odenisli": 64, "ds": 64}, {"qrup": "7006028 Mexatronika və robototexnika mühəndisliyi", "universitet": "ATU", "ixtisas": "Robotlar və robototexniki sistemlər (tədris ingilis dilində)", "il": 2026, "odenisli": 68, "ds": 68}, {"qrup": "7006028 Mexatronika və robototexnika mühəndisliyi", "universitet": "BDU", "ixtisas": "Robotlar və robototexniki sistemlər", "il": 2026, "odenisli": 62.5, "ds": 62.5}, {"qrup": "7006028 Mexatronika və robototexnika mühəndisliyi", "universitet": "ATU", "ixtisas": "Robotlar və robototexniki sistemlər", "il": 2025, "odenisli": 58.5, "ds": 58.5}, {"qrup": "7006028 Mexatronika və robototexnika mühəndisliyi", "universitet": "ATU", "ixtisas": "Robotlar və robototexniki sistemlər (tədris ingilis dilində)", "il": 2025, "odenisli": 67, "ds": 67}, {"qrup": "7006022 Kompüter mühəndisliyi", "universitet": "ATU", "ixtisas": "Kompüter mühəndisliyi", "il": 2024, "odenisli": 79.0, "ds": 79.0}, {"qrup": "7006022 Kompüter mühəndisliyi", "universitet": "ATU", "ixtisas": "Kompüter mühəndisliyi", "il": 2024, "odenisli": 62.0, "ds": 62.0}, {"qrup": "7006022 Kompüter mühəndisliyi", "universitet": "ATU", "ixtisas": "Kompüter mühəndisliyi (tədris ingilis dilində)", "il": 2024, "odenisli": 70.5, "ds": 70.5}, {"qrup": "7006022 Kompüter mühəndisliyi", "universitet": "ATU", "ixtisas": "Kompüter sistemləri və şəbəkələri", "il": 2024, "odenisli": 71.5, "ds": 71.5}, {"qrup": "7006022 Kompüter mühəndisliyi", "universitet": "ATU", "ixtisas": "Kompüter sistemləri və şəbəkələri", "il": 2024, "odenisli": 61.5, "ds": 61.5}, {"qrup": "7006022 Kompüter mühəndisliyi", "universitet": "ADNSU", "ixtisas": "Kompüter sistemləri və şəbəkələri (tədris ingilis dilində)", "il": 2024, "odenisli": 56.0, "ds": 62.0}, {"qrup": "7006022 Kompüter mühəndisliyi", "universitet": "ATU", "ixtisas": "Kompüter texnikasının layihələndirilməsi və konstruksiya edilməsi", "il": 2024, "odenisli": 67.5, "ds": 67.5}, {"qrup": "7006022 Kompüter mühəndisliyi", "universitet": "ATU", "ixtisas": "Biliklərin əldə edilməsi sistemləri", "il": 2024, "odenisli": 69.5, "ds": 69.5}, {"qrup": "7006022 Kompüter mühəndisliyi", "universitet": "ATU", "ixtisas": "Dinamiki arxitekturalı multiprosessor sistem və şəbəkələri", "il": 2024, "odenisli": 68.0, "ds": 68.0}, {"qrup": "7006016 İnformasiya texnologiyaları", "universitet": "ATU", "ixtisas": "İdarəetmədə informasiya sistemləri", "il": 2024, "odenisli": 75.0, "ds": 75.0}, {"qrup": "7006016 İnformasiya texnologiyaları", "universitet": "ADNSU", "ixtisas": "İdarəetmədə informasiya sistemləri", "il": 2024, "odenisli": 73.0, "ds": 73.0}, {"qrup": "7006016 İnformasiya texnologiyaları", "universitet": "ADNSU", "ixtisas": "İdarəetmədə informasiya sistemləri", "il": 2024, "odenisli": 60.0, "ds": 60.0}, {"qrup": "7006016 İnformasiya texnologiyaları", "universitet": "ADNSU", "ixtisas": "İdarəetmədə informasiya sistemləri (tədris ingilis dilində)", "il": 2024, "odenisli": 55.0, "ds": 57.0}, {"qrup": "7006016 İnformasiya texnologiyaları", "universitet": "AMİU", "ixtisas": "İdarəetmədə informasiya sistemləri", "il": 2024, "odenisli": 69.0, "ds": 69.0}, {"qrup": "7006016 İnformasiya texnologiyaları", "universitet": "AMİU", "ixtisas": "İdarəetmədə informasiya sistemləri (tədris ingilis dilində)", "il": 2024, "odenisli": 67.0, "ds": 67.0}, {"qrup": "7006016 İnformasiya texnologiyaları", "universitet": "BDU", "ixtisas": "İnformasiya sistemləri", "il": 2024, "odenisli": 59.0, "ds": 59.0}, {"qrup": "7006016 İnformasiya texnologiyaları", "universitet": "BDU", "ixtisas": "İqtisadi informasiya sistemləri", "il": 2024, "odenisli": 73.5, "ds": 73.5}, {"qrup": "7006016 İnformasiya texnologiyaları", "universitet": "ATU", "ixtisas": "İqtisadi informatika", "il": 2024, "odenisli": 68.5, "ds": 68.5}, {"qrup": "7006016 İnformasiya texnologiyaları", "universitet": "ADNSU", "ixtisas": "İqtisadi informatika (tədris ingilis dilində)", "il": 2024, "odenisli": 40.0, "ds": 83.0}, {"qrup": "7006016 İnformasiya texnologiyaları", "universitet": "ATU", "ixtisas": "İnformasiya texnologiyaları və telekommunikasiya sistemləri", "il": 2024, "odenisli": 73.5, "ds": 73.5}, {"qrup": "7006016 İnformasiya texnologiyaları", "universitet": "ATU", "ixtisas": "İnformasiya texnologiyaları və telekommunikasiya sistemləri", "il": 2024, "odenisli": 61.0, "ds": 62.0}, {"qrup": "7006017 İnformasiya təhlükəsizliyi", "universitet": "ATU", "ixtisas": "İnformasiya mühafizəsi və təhlükəsizliyi", "il": 2024, "odenisli": 74.5, "ds": 74.5}, {"qrup": "7006017 İnformasiya təhlükəsizliyi", "universitet": "ADNSU", "ixtisas": "İnformasiya mühafizəsi və təhlükəsizliyi", "il": 2024, "odenisli": 75.5, "ds": 75.5}, {"qrup": "7006017 İnformasiya təhlükəsizliyi", "universitet": "ADNSU", "ixtisas": "İnformasiya mühafizəsi və təhlükəsizliyi (tədris ingilis dilində)", "il": 2024, "odenisli": 73.0, "ds": 73.0}, {"qrup": "7006017 İnformasiya təhlükəsizliyi", "universitet": "ATU", "ixtisas": "Kompüter təhlükəsizliyi", "il": 2024, "odenisli": 72.0, "ds": 72.0}, {"qrup": "7006017 İnformasiya təhlükəsizliyi", "universitet": "ATU", "ixtisas": "Kibertəhlükəsizlik (SABAH, tədris Azərbaycan dilində)", "il": 2024, "odenisli": null, "ds": 69.0}, {"qrup": "7006017 İnformasiya təhlükəsizliyi", "universitet": "ATU", "ixtisas": "Dövlət informasiya sistemlərinin təhlükəsizliyi", "il": 2024, "odenisli": 75.5, "ds": 75.5}, {"qrup": "7006017 İnformasiya təhlükəsizliyi", "universitet": "ATU", "ixtisas": "Telekommunikasiya sistemlərinin informasiya təhlükəsizliyi", "il": 2024, "odenisli": 71.0, "ds": 71.0}, {"qrup": "7006017 İnformasiya təhlükəsizliyi", "universitet": "ATU", "ixtisas": "Telekommunikasiya sistemlərinin informasiya təhlükəsizliyi", "il": 2024, "odenisli": 64.0, "ds": 64.0}, {"qrup": "7006005 Data elmləri", "universitet": "ATU", "ixtisas": "Verilənlərin təhlili (Data analitikası)", "il": 2024, "odenisli": 78.5, "ds": 78.5}, {"qrup": "7006005 Data elmləri", "universitet": "ADNSU", "ixtisas": "Verilənlərin təhlili (Data analitikası, tədris ingilis dilində)", "il": 2024, "odenisli": 69.0, "ds": 69.0}, {"qrup": "7005009 Kompüter elmləri", "universitet": "ATU", "ixtisas": "İntellektual sistemlər", "il": 2024, "odenisli": 71.0, "ds": 71.0}, {"qrup": "7005009 Kompüter elmləri", "universitet": "BDU", "ixtisas": "İnformatika", "il": 2024, "odenisli": 70.5, "ds": 70.5}, {"qrup": "7005009 Kompüter elmləri", "universitet": "BDU", "ixtisas": "İnformatika", "il": 2024, "odenisli": 58.0, "ds": 58.0}, {"qrup": "7005009 Kompüter elmləri", "universitet": "ATU", "ixtisas": "İnformatika", "il": 2024, "odenisli": 67.5, "ds": 67.5}, {"qrup": "7005009 Kompüter elmləri", "universitet": "ATU", "ixtisas": "Kompüterli modelləşdirmə", "il": 2024, "odenisli": 70.0, "ds": 70.0}, {"qrup": "7005009 Kompüter elmləri", "universitet": "ATU", "ixtisas": "Kompüterli modelləşdirmə", "il": 2024, "odenisli": 60.0, "ds": 60.0}, {"qrup": "7005009 Kompüter elmləri", "universitet": "BDU", "ixtisas": "Riyazi modelləşdirmə", "il": 2024, "odenisli": 68.0, "ds": 68.0}, {"qrup": "7005009 Kompüter elmləri", "universitet": "BDU", "ixtisas": "Tətbiqi riyaziyyat", "il": 2024, "odenisli": 71.5, "ds": 71.5}, {"qrup": "7005009 Kompüter elmləri", "universitet": "ADNSU", "ixtisas": "Tətbiqi riyaziyyat", "il": 2024, "odenisli": 66.0, "ds": 66.0}, {"qrup": "7005009 Kompüter elmləri", "universitet": "ATU", "ixtisas": "Tətbiqi riyaziyyat", "il": 2024, "odenisli": 66.0, "ds": 66.0}, {"qrup": "7005009 Kompüter elmləri", "universitet": "BDU", "ixtisas": "Optimal idarəetmənin riyazi-iqtisadi üsulları", "il": 2024, "odenisli": 64.5, "ds": 64.5}, {"qrup": "7005009 Kompüter elmləri", "universitet": "ATU", "ixtisas": "Optimal idarəetmənin riyazi-iqtisadi üsulları", "il": 2024, "odenisli": 67.0, "ds": 67.0}, {"qrup": "7005009 Kompüter elmləri", "universitet": "ATU", "ixtisas": "Süni intellekt", "il": 2024, "odenisli": 75.5, "ds": 75.5}, {"qrup": "7005009 Kompüter elmləri", "universitet": "ADNSU", "ixtisas": "Süni intellekt (SABAH, tədris ingilis dilində)", "il": 2024, "odenisli": null, "ds": 40.0}, {"qrup": "7006028 Mexatronika və robototexnika mühəndisliyi", "universitet": "ATU", "ixtisas": "Mexatronika", "il": 2024, "odenisli": 52.5, "ds": 52.5}, {"qrup": "7006028 Mexatronika və robototexnika mühəndisliyi", "universitet": "ATU", "ixtisas": "Robotlar və robototexniki sistemlər", "il": 2024, "odenisli": 57.5, "ds": 57.5}, {"qrup": "7006028 Mexatronika və robototexnika mühəndisliyi", "universitet": "ADNSU", "ixtisas": "Robotlar və robototexniki sistemlər", "il": 2024, "odenisli": 55.0, "ds": 55.0}];
+
+// ---- qrupla ----
+const groups = {};
+RAW_DATA.forEach(d => {
+  if(!groups[d.qrup]) groups[d.qrup] = [];
+  groups[d.qrup].push(d);
+});
+
+const groupSelect = document.getElementById('groupSelect');
+const specSelect = document.getElementById('specSelect');
+const balInput = document.getElementById('balInput');
+const checkBtn = document.getElementById('checkBtn');
+const basisOdenisli = document.getElementById('basisOdenisli');
+const basisDs = document.getElementById('basisDs');
+let basis = 'odenisli';
+
+Object.keys(groups).sort().forEach(g => {
+  const opt = document.createElement('option');
+  opt.value = g; opt.textContent = g;
+  groupSelect.appendChild(opt);
+});
+
+function specKey(d){ return d.ixtisas + ' || ' + d.universitet; }
+
+function populateSpecs(group){
+  specSelect.innerHTML = '';
+  const items = groups[group] || [];
+  // unikal (ixtisas+universitet) cütləri, ən son il üzrə sıralı
+  const byKey = {};
+  items.forEach(d => {
+    const k = specKey(d);
+    if(!byKey[k]) byKey[k] = [];
+    byKey[k].push(d);
+  });
+  const keys = Object.keys(byKey).sort();
+  if(keys.length === 0){
+    specSelect.innerHTML = '<option value="">bu qrupda data yoxdur</option>';
+    specSelect.disabled = true;
+    return;
+  }
+  specSelect.disabled = false;
+  specSelect.innerHTML = '<option value="">— seç —</option>';
+  keys.forEach(k => {
+    const opt = document.createElement('option');
+    opt.value = k;
+    const [ixtisas, uni] = k.split(' || ');
+    opt.textContent = ixtisas + ' (' + uni + ')';
+    specSelect.appendChild(opt);
+  });
+}
+
+groupSelect.addEventListener('change', () => {
+  if(groupSelect.value){
+    populateSpecs(groupSelect.value);
+  } else {
+    specSelect.innerHTML = '<option value="">əvvəlcə qrup seç</option>';
+    specSelect.disabled = true;
+  }
+  validateForm();
+});
+
+specSelect.addEventListener('change', validateForm);
+balInput.addEventListener('input', validateForm);
+
+basisOdenisli.addEventListener('click', () => setBasis('odenisli'));
+basisDs.addEventListener('click', () => setBasis('ds'));
+function setBasis(b){
+  basis = b;
+  basisOdenisli.classList.toggle('active', b==='odenisli');
+  basisDs.classList.toggle('active', b==='ds');
+}
+
+function validateForm(){
+  const ok = balInput.value !== '' && groupSelect.value && specSelect.value;
+  checkBtn.disabled = !ok;
+}
+
+let chartInstance = null;
+
+checkBtn.addEventListener('click', () => {
+  const yourScore = parseFloat(balInput.value);
+  const group = groupSelect.value;
+  const key = specSelect.value;
+  const [ixtisas, uni] = key.split(' || ');
+
+  const records = (groups[group]||[]).filter(d => specKey(d)===key)
+    .sort((a,b)=>a.il-b.il);
+
+  const valid = records.filter(d => d[basis] !== null && d[basis] !== undefined);
+  if(valid.length === 0){
+    document.getElementById('emptyState').textContent = 'Bu ixtisas/əsas üçün kifayət qədər keçid balı məlumatı yoxdur.';
+    document.getElementById('emptyState').style.display='block';
+    document.getElementById('result').style.display='none';
+    return;
+  }
+  document.getElementById('emptyState').style.display='none';
+  document.getElementById('result').style.display='block';
+
+  const latest = valid[valid.length-1];
+  const latestScore = latest[basis];
+  const diff = +(yourScore - latestScore).toFixed(1);
+
+  const verdictBox = document.getElementById('verdictBox');
+  const verdictTitle = document.getElementById('verdictTitle');
+  const verdictText = document.getElementById('verdictText');
+
+  verdictBox.className = 'verdict';
+  if(diff >= 3){
+    verdictBox.classList.add('good');
+    verdictTitle.textContent = 'Keçid ehtimalın yüksəkdir';
+    verdictText.textContent = 'Balın son ilin keçid balından ' + Math.abs(diff) + ' bal yuxarıdır.';
+  } else if(diff >= -2){
+    verdictBox.classList.add('warn');
+    verdictTitle.textContent = 'Sərhəd bölgəsindəsən';
+    verdictText.textContent = diff >= 0
+      ? 'Balın keçid balına yaxındır (+' + diff + '). Yer sayı və rəqabətdən asılı olaraq dəyişə bilər.'
+      : 'Balın keçid balından ' + Math.abs(diff) + ' aşağıdır, amma fərq kiçikdir — illər üzrə tərəddüd nəzərə alınmalıdır.';
+  } else {
+    verdictBox.classList.add('bad');
+    verdictTitle.textContent = 'Keçid ehtimalı aşağıdır';
+    verdictText.textContent = 'Balın son ilin keçid balından ' + Math.abs(diff) + ' bal aşağıdır.';
+  }
+
+  document.getElementById('statYour').textContent = yourScore;
+  document.getElementById('statLatest').textContent = latestScore + ' (' + latest.il + ')';
+  const statDiff = document.getElementById('statDiff');
+  statDiff.textContent = (diff>=0?'+':'') + diff;
+  statDiff.style.color = diff>=0 ? 'var(--good)' : 'var(--bad)';
+
+  // Chart
+  const ctx = document.getElementById('trendChart').getContext('2d');
+  if(chartInstance) chartInstance.destroy();
+  chartInstance = new Chart(ctx, {
+    type:'line',
+    data:{
+      labels: valid.map(d=>d.il),
+      datasets:[
+        {
+          label:'Keçid balı',
+          data: valid.map(d=>d[basis]),
+          borderColor:'#1d2f5c',
+          backgroundColor:'rgba(29,47,92,0.08)',
+          borderWidth:2.5,
+          pointBackgroundColor:'#1d2f5c',
+          pointRadius:4,
+          tension:0.25,
+          fill:true
+        },
+        {
+          label:'Sənin balın',
+          data: valid.map(()=>yourScore),
+          borderColor:'#b8893a',
+          borderDash:[6,5],
+          borderWidth:2,
+          pointRadius:0
+        }
+      ]
+    },
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      plugins:{ legend:{ position:'bottom', labels:{ font:{family:"Helvetica Neue, Arial"}, boxWidth:14, padding:16 } } },
+      scales:{
+        y:{ ticks:{font:{family:"Helvetica Neue, Arial"}}, grid:{color:'#eee5d3'} },
+        x:{ ticks:{font:{family:"Helvetica Neue, Arial"}}, grid:{display:false} }
+      }
+    }
+  });
+
+  // Digər seçimlər (2026)
+  const others2026 = (groups[group]||[]).filter(d => d.il===2026 && d[basis]!==null && d[basis]!==undefined)
+    .sort((a,b)=> (b[basis]) - (a[basis]));
+  const tbody = document.getElementById('otherRows');
+  tbody.innerHTML = '';
+  others2026.forEach(d => {
+    const tr = document.createElement('tr');
+    tr.className = yourScore >= d[basis] ? 'ok' : 'no';
+    tr.innerHTML = '<td class="sans">'+d.ixtisas+'</td><td class="sans">'+d.universitet+'</td><td class="sans num bal">'+d[basis]+'</td>';
+    tbody.appendChild(tr);
+  });
+});
+</script>
+</body>
+</html>
